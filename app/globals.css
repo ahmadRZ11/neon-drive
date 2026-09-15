@@ -1,0 +1,628 @@
+@import "tailwindcss";
+
+/* ============================================================================
+   VICE — design tokens
+   Tailwind v4 reads this block and generates utilities from it:
+   --color-magenta -> text-magenta / bg-magenta / border-magenta
+   --font-display  -> font-display
+   ========================================================================= */
+@theme {
+  /* ---- surfaces: blue-shifted blacks, never pure #000 ---- */
+  --color-ink: #05050c;
+  --color-midnight: #0a0a1c;
+  --color-navy: #10122e;
+  --color-slate: #1b1d42;
+
+  /* ---- accents ---- */
+  --color-violet: #6d28d9;
+  --color-electric: #8b3dff;
+  --color-magenta: #ff2d95;
+  --color-pink: #ff5c9d;
+  --color-cyan: #22e0ff;
+  --color-aqua: #6df3ff;
+  --color-orange: #ff7a2f;
+  --color-peach: #ffb98a;
+  --color-gold: #ffd36e;
+
+  /* ---- type colours: warm off-white reads filmic, pure white reads cheap ---- */
+  --color-bone: #f4ece6;
+  --color-ash: #a7a3bd;
+  --color-dim: #6b6885;
+
+  /* ---- families (wired to next/font in layout.tsx) ----
+     Pricedown carries every headline; the two scripts are accents only; Bebas
+     and Space Grotesk carry everything small enough that a display face would
+     stop being readable. */
+  --font-display: var(--font-pricedown), "Arial Black", Impact, sans-serif;
+  --font-script: var(--font-rage), "Brush Script MT", cursive;
+  --font-sign: var(--font-signatur), "Brush Script MT", cursive;
+  --font-condensed: var(--font-bebas), "Arial Narrow", sans-serif;
+  --font-sans: var(--font-grotesk), ui-sans-serif, system-ui, sans-serif;
+
+  /* ---- motion ---- */
+  --ease-cine: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-power: cubic-bezier(0.65, 0, 0.35, 1);
+
+  --animate-drift: drift 24s linear infinite;
+  --animate-pulse-dot: pulse-dot 2.4s ease-in-out infinite;
+  --animate-flicker: flicker 6s linear infinite;
+
+  @keyframes drift {
+    from { transform: translate3d(0, 0, 0); }
+    to { transform: translate3d(-50%, 0, 0); }
+  }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.35; transform: scale(0.82); }
+  }
+  @keyframes flicker {
+    0%, 96%, 100% { opacity: 1; }
+    97% { opacity: 0.72; }
+    98% { opacity: 1; }
+    99% { opacity: 0.85; }
+  }
+}
+
+/* ============================================================================
+   BASE
+   ========================================================================= */
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  /* Lenis drives scrolling itself; native smooth would fight it. */
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+  html.lenis {
+    scroll-behavior: auto;
+  }
+  .lenis.lenis-smooth [data-lenis-prevent] {
+    overscroll-behavior: contain;
+  }
+
+  body {
+    background-color: var(--color-ink);
+    color: var(--color-bone);
+    font-family: var(--font-sans);
+    font-synthesis-weight: none;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  canvas { display: block; }
+
+  ::selection {
+    background: var(--color-magenta);
+    color: var(--color-ink);
+  }
+
+  /* Visible, on-brand focus ring - never remove the outline outright. */
+  :focus-visible {
+    outline: 2px solid var(--color-cyan);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  /* Custom pointer. Hotspot 1 1 is the arrow's tip, measured from the
+     artwork's alpha channel. image-set serves the 2x file on retina; the
+     plain url() above it is the fallback for browsers that do not support
+     image-set in the cursor property. */
+  body {
+    cursor: url("/cursor-32.png") 1 1, auto;
+    cursor: image-set(url("/cursor-32.png") 1x, url("/cursor-64.png") 2x) 1 1, auto;
+  }
+
+  /* The UA stylesheet gives links and buttons a cursor of their own, which
+     would drop them back to the system hand. */
+  a,
+  button,
+  summary,
+  label,
+  [role="button"] {
+    cursor: inherit;
+  }
+
+  /* Text entry should still say "text". */
+  input,
+  textarea,
+  select {
+    cursor: auto;
+  }
+
+  ::-webkit-scrollbar { width: 9px; }
+  ::-webkit-scrollbar-track { background: var(--color-ink); }
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(var(--color-magenta), var(--color-electric));
+  }
+}
+
+/* ============================================================================
+   TYPOGRAPHY UTILITIES
+   ========================================================================= */
+
+/* Poster type. Pricedown is already condensed, so it wants neutral tracking
+   rather than the negative tracking a normal grotesk display face takes, and
+   enough leading that its tall caps are not clipped.
+   0.74 suits stacked one-word lines; loosen it locally (leading-[0.86]) for
+   any headline that wraps, or the lines collide. */
+@utility display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  line-height: 0.74;
+  letter-spacing: 0.005em;
+  text-transform: uppercase;
+}
+
+/* Brush-script accent. Never below ~20px, never for more than a phrase. */
+@utility script {
+  font-family: var(--font-script);
+  font-weight: 400;
+  line-height: 1.05;
+  text-transform: none;
+  letter-spacing: 0.01em;
+}
+
+/* Reserved for the literal sign-off in the footer. */
+@utility signature {
+  font-family: var(--font-sign);
+  font-weight: 400;
+  line-height: 1.1;
+  text-transform: none;
+}
+
+@utility hud {
+  font-family: var(--font-condensed);
+  font-weight: 400;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+@utility type-outline-bone {
+  color: transparent;
+  -webkit-text-stroke: clamp(1.5px, 0.22vw, 4px) var(--color-bone);
+}
+@utility type-outline-magenta {
+  color: transparent;
+  -webkit-text-stroke: clamp(1.5px, 0.22vw, 4px) var(--color-magenta);
+  text-shadow: 0 0 20px --alpha(var(--color-magenta) / 32%);
+}
+@utility type-outline-cyan {
+  color: transparent;
+  -webkit-text-stroke: clamp(1.5px, 0.22vw, 4px) var(--color-cyan);
+  text-shadow: 0 0 20px --alpha(var(--color-cyan) / 28%);
+}
+
+/* ============================================================================
+   SURFACE UTILITIES
+   Hairline borders + barely-there tint. Deliberately NOT frosted-glass mush.
+   ========================================================================= */
+@utility hairline {
+  border: 1px solid --alpha(var(--color-bone) / 12%);
+}
+
+@utility panel {
+  background: linear-gradient(
+    160deg,
+    --alpha(var(--color-slate) / 55%),
+    --alpha(var(--color-midnight) / 65%)
+  );
+  border: 1px solid --alpha(var(--color-bone) / 10%);
+  backdrop-filter: blur(6px);
+}
+
+/* 1px neon top edge - reads as rim-light rather than a glowing box */
+@utility panel-edge {
+  position: relative;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      --alpha(var(--color-magenta) / 70%) 30%,
+      --alpha(var(--color-cyan) / 70%) 70%,
+      transparent
+    );
+  }
+}
+
+/* Restrained glows - accents and borders only, never body copy. */
+@utility glow-magenta {
+  box-shadow: 0 0 24px --alpha(var(--color-magenta) / 35%);
+}
+@utility glow-cyan {
+  box-shadow: 0 0 24px --alpha(var(--color-cyan) / 35%);
+}
+@utility text-glow {
+  text-shadow: 0 0 18px --alpha(currentColor / 55%);
+}
+
+/* ============================================================================
+   ATMOSPHERE / FILM
+   ========================================================================= */
+
+/* feTurbulence grain, inlined so it costs no request */
+@utility grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@utility scanlines {
+  background-image: repeating-linear-gradient(
+    180deg,
+    transparent 0 2px,
+    rgb(0 0 0 / 0.16) 2px 3px
+  );
+}
+
+/* Scanlines + vignette + chromatic edge fringe in a single paint. */
+@utility film-optics {
+  background-image:
+    radial-gradient(ellipse 100% 100% at 0% 50%, rgb(255 45 149 / 0.05), transparent 42%),
+    radial-gradient(ellipse 100% 100% at 100% 50%, rgb(34 224 255 / 0.05), transparent 42%),
+    repeating-linear-gradient(180deg, transparent 0 2px, rgb(0 0 0 / 0.04) 2px 3px),
+    radial-gradient(ellipse 120% 85% at 50% 45%, transparent 40%, rgb(0 0 0 / 0.55) 100%);
+}
+
+@utility vignette {
+  background: radial-gradient(
+    ellipse 120% 85% at 50% 45%,
+    transparent 40%,
+    rgb(0 0 0 / 0.55) 100%
+  );
+}
+
+/* Fade a strip out at both ends instead of hard-cutting it */
+@utility edge-fade-x {
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}
+@utility edge-fade-b {
+  mask-image: linear-gradient(180deg, #000 55%, transparent);
+}
+
+/* ============================================================================
+   STATE
+   ========================================================================= */
+
+/* Pre-animation state for GSAP-revealed elements. Lives in CSS so nothing
+   flashes before hydration, and the reduce-motion block below un-hides it. */
+@utility will-reveal {
+  opacity: 0;
+  transform: translate3d(0, 34px, 0);
+}
+
+@utility will-reveal-clip {
+  clip-path: inset(0 0 100% 0);
+}
+
+/* ============================================================================
+   RESIZE GUARD
+   Set on <html> while a resize/zoom burst is in flight. Everything switched
+   off here is something the compositor would otherwise have to re-rasterise
+   for every intermediate zoom step.
+   ========================================================================= */
+html.is-resizing .panel,
+html.is-resizing .nav-surface {
+  backdrop-filter: none;
+}
+
+html.is-resizing .grain {
+  animation: none;
+}
+
+/* Releasing the promotion lets the compositor discard these layers instead of
+   re-rasterising each one at every intermediate scale. */
+html.is-resizing .dusk-layer {
+  will-change: auto;
+}
+
+html.is-resizing * {
+  transition: none !important;
+}
+
+/* ============================================================================
+   REDUCED MOTION
+   One place that neutralises CSS animation. GSAP/Motion/R3F check the same
+   media query in JS and skip work entirely.
+   ========================================================================= */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .will-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .will-reveal-clip {
+    clip-path: none !important;
+  }
+}
+
+/* ============================================================================
+   SKY SYSTEM
+   --dusk drives the whole page from Miami sunset (0) to deep night (1).
+   Registering it as a typed custom property means it interpolates as a number
+   instead of flipping between string tokens.
+   ========================================================================= */
+@property --dusk {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+@utility sky-night {
+  background:
+    radial-gradient(120% 70% at 50% 102%, rgb(109 40 217 / 0.38), transparent 62%),
+    linear-gradient(
+      180deg,
+      #05050c 0%,
+      #07071a 30%,
+      #0d0f2a 58%,
+      #16183a 79%,
+      #241a44 88.5%,
+      #0b0b20 89.2%,
+      #05050c 100%
+    );
+}
+
+@utility sky-dusk {
+  background:
+    radial-gradient(85% 52% at 50% 98%, rgb(255 179 138 / 0.5), transparent 64%),
+    linear-gradient(
+      180deg,
+      #160a33 0%,
+      #3d1470 20%,
+      #7d1f8c 40%,
+      #c22a88 58%,
+      #ff5c9d 72%,
+      #ff7a2f 83%,
+      #ffb98a 88.5%,
+      /* below this line is water, not sky */
+      #0b0b20 89.2%,
+      #05050c 100%
+    );
+}
+
+/* The sun disc: warm core, and the horizontal cut-outs that make it read 80s */
+@utility sun-disc {
+  background:
+    repeating-linear-gradient(
+      180deg,
+      transparent 0 9px,
+      rgb(5 5 12 / 0.55) 9px 13px
+    ),
+    linear-gradient(180deg, #ffd36e 0%, #ff7a2f 46%, #ff2d95 100%);
+  mask-image: radial-gradient(circle at 50% 50%, #000 49%, transparent 50%);
+}
+
+@utility ocean-band {
+  background: linear-gradient(180deg, #0b0b20 0%, #07071a 45%, #05050c 100%);
+}
+
+/* Neon streaks reflecting off the water */
+/* For the full-screen layers whose opacity/transform is driven by --dusk on
+   every scroll frame. Without promotion each change is a full-viewport
+   repaint; with it, the compositor handles it and the main thread is free. */
+@utility dusk-layer {
+  will-change: opacity;
+  transform: translateZ(0);
+}
+
+@utility ocean-shimmer {
+  background: repeating-linear-gradient(
+    180deg,
+    rgb(255 92 157 / 0.14) 0 1px,
+    transparent 1px 7px
+  );
+}
+
+/* Grain jitter. Deliberately slow: this layer is mix-blended, so every step
+   re-blends the entire viewport. 3s/6 steps still reads as living film. */
+@theme {
+  --animate-grain: grain-shift 3s steps(6) infinite;
+
+  @keyframes grain-shift {
+    0%   { transform: translate3d(0, 0, 0); }
+    25%  { transform: translate3d(-3%, 2%, 0); }
+    50%  { transform: translate3d(2%, -3%, 0); }
+    75%  { transform: translate3d(-2%, -2%, 0); }
+    100% { transform: translate3d(3%, 1%, 0); }
+  }
+}
+
+/* ============================================================================
+   BOOT VEIL
+   CSS-only on purpose — see Boot.tsx. `forwards` means the end state sticks
+   even when reduce-motion crushes the duration to nothing.
+   ========================================================================= */
+@utility boot-veil {
+  clip-path: inset(0 0 0 0);
+  animation: boot-wipe 1.25s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+}
+
+@utility boot-mark {
+  opacity: 0;
+  animation: boot-mark-in 1s ease-out forwards;
+}
+
+@utility boot-bar {
+  transform: scaleX(0);
+  animation: boot-bar-in 0.75s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+
+@keyframes boot-wipe {
+  0%, 52% { clip-path: inset(0 0 0 0); }
+  100%    { clip-path: inset(0 0 100% 0); }
+}
+
+@keyframes boot-mark-in {
+  0%   { opacity: 0; }
+  28%  { opacity: 1; }
+  62%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes boot-bar-in {
+  0%   { transform: scaleX(0); }
+  100% { transform: scaleX(1); }
+}
+
+/* ============================================================================
+   TYPE SCALE
+   Replaces the ad-hoc text-[9px] / text-[13px] values that had accumulated
+   across the components. Four body steps and three HUD steps, each with its
+   own line-height, so paragraphs and labels are consistent everywhere.
+   ========================================================================= */
+@theme {
+  /* body copy — Space Grotesk */
+  --text-lead: 1.0625rem;
+  --text-lead--line-height: 1.62;
+  --text-body: 0.9375rem;
+  --text-body--line-height: 1.7;
+  --text-body-sm: 0.8125rem;
+  --text-body-sm--line-height: 1.65;
+
+  /* HUD labels — Bebas Neue, always paired with the `hud` utility */
+  --text-hud-lg: 0.75rem;
+  --text-hud-lg--line-height: 1;
+  --text-hud: 0.625rem;
+  --text-hud--line-height: 1;
+  --text-hud-sm: 0.5625rem;
+  --text-hud-sm--line-height: 1;
+
+  /* nav labels — Pricedown, the smallest size it stays legible at */
+  --text-nav: 1rem;
+  --text-nav--line-height: 1;
+}
+
+/* Nav links: display face, wide tracking, neon on hover and when active. */
+@utility nav-link {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.085em;
+  line-height: 1;
+  transition: color 250ms, text-shadow 250ms;
+}
+
+/* The glow used on active nav items and section accents. Kept as a utility so
+   the same value is not re-typed as an arbitrary shadow in five places. */
+@utility neon-magenta {
+  color: var(--color-magenta);
+  text-shadow: 0 0 14px --alpha(var(--color-magenta) / 65%);
+}
+
+@utility neon-cyan {
+  color: var(--color-cyan);
+  text-shadow: 0 0 14px --alpha(var(--color-cyan) / 55%);
+}
+
+/* Lucide icons sit optically high next to uppercase type; this nudges them
+   back onto the baseline and gives them a faint neon bloom. */
+@utility icon-glow {
+  filter: drop-shadow(0 0 6px --alpha(currentColor / 55%));
+}
+
+/* ============================================================================
+   LIGHTBOX (yet-another-react-lightbox)
+   Applied via className="neon-lightbox" on the Lightbox root. The doubled
+   selector (.yarl__root.neon-lightbox) matters: the library's own stylesheet
+   is imported from a component and therefore lands after globals.css, so a
+   single class would lose on source order.
+   ========================================================================= */
+.yarl__root.neon-lightbox {
+  --yarl__color_backdrop: rgb(5 5 12 / 0.94);
+  --yarl__color_button: rgb(167 163 189 / 1);
+  --yarl__color_button_active: rgb(255 45 149 / 1);
+  --yarl__color_button_disabled: rgb(107 104 133 / 1);
+  --yarl__button_filter: drop-shadow(0 0 6px rgb(0 0 0 / 0.65));
+  --yarl__slide_captions_container_background: transparent;
+  --yarl__thumbnails_container_background_color: rgb(5 5 12 / 0.94);
+  --yarl__thumbnails_thumbnail_background: rgb(10 10 28 / 1);
+  --yarl__thumbnails_thumbnail_border_radius: 0px;
+  --yarl__thumbnails_thumbnail_active_border_color: rgb(255 45 149 / 1);
+}
+
+.neon-lightbox .yarl__button {
+  transition: color 250ms, filter 250ms;
+}
+
+.neon-lightbox .yarl__button:hover,
+.neon-lightbox .yarl__button:focus-visible {
+  color: rgb(34 224 255);
+  filter: drop-shadow(0 0 10px rgb(34 224 255 / 0.7));
+}
+
+/* Captions use the same condensed HUD face as every other label on the page */
+.neon-lightbox .yarl__slide_title {
+  font-family: var(--font-condensed);
+  font-size: 0.75rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgb(244 236 230);
+  text-shadow: 0 0 16px rgb(255 45 149 / 0.5);
+}
+
+.neon-lightbox .yarl__thumbnails_thumbnail {
+  border-color: rgb(244 236 230 / 0.14);
+}
+
+.neon-lightbox .yarl__thumbnails_thumbnail_active {
+  box-shadow: 0 0 18px -4px rgb(255 45 149);
+}
+
+/* A whisper of CRT over the slide, so the overlay belongs to the same world */
+.neon-lightbox .yarl__slide::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    180deg,
+    transparent 0 2px,
+    rgb(0 0 0 / 0.11) 2px 3px
+  );
+}
+
+/* ============================================================================
+   BUTTON LABELS
+   Buttons used the `hud` face (Bebas Neue). It ships a single 400 weight, and
+   at 10–12px with 0.22em tracking the strokes are hairline and the wide
+   spacing scatters what little mass there is — so the labels read as thin.
+   font-synthesis-weight is off globally, so `font-bold` could not rescue it
+   either.
+
+   Space Grotesk is variable (300–700), so this keeps the same uppercase HUD
+   character but with real weight behind it, and pulls the tracking in to stop
+   the letters drifting apart.
+   ========================================================================= */
+@utility btn-label {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+@theme {
+  --text-btn-sm: 0.6875rem;
+  --text-btn-sm--line-height: 1;
+  --text-btn: 0.75rem;
+  --text-btn--line-height: 1;
+  --text-btn-lg: 0.875rem;
+  --text-btn-lg--line-height: 1;
+}
