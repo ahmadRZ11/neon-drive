@@ -57,7 +57,8 @@ app/
     rand.ts             seeded PRNG (procedural art must be deterministic)
     skyline.ts          skyline + palm frond geometry generators
   components/
-    atmosphere/         Atmosphere, Skyline, Palms, HeroScene (R3F), mount gate
+    atmosphere/         Atmosphere, Skyline, Palms, DrivingCar, SpeedLines,
+                        HeroScene (R3F), mount gate
     chrome/             Nav, Footer, Film, Boot
     providers/          SmoothScroll (Lenis ↔ GSAP ↔ ScrollTrigger)
     sections/           Hero, About, Work, ProjectRow, ProjectCover, Gallery,
@@ -131,6 +132,50 @@ Theming lives in `globals.css` under `.yarl__root.neon-lightbox`. The doubled
 selector is deliberate: the library's stylesheet is imported from a component,
 so it lands after globals and a single class would lose on source order.
 
+## The drive
+
+Two pieces give the backdrop its motion, and both are in
+[`components/atmosphere/`](app/components/atmosphere/).
+
+**`DrivingCar`** is a causeway running to the horizon with a car on it, seen
+from behind. The road is one element: deck, both kerbs and the centre dashes
+are background layers on a single box laid flat with `rotateX(80deg)`, and all
+of them tile on the same 46px period — so the road "runs" by translating the
+plane exactly one period, forever, with no seam and nothing to repaint.
+
+The perspective is arithmetic rather than art direction. A plane rotated by θ
+converges at `p · cot(θ)` above its origin, so `perspective: 62.4vh` with
+`rotateX(80deg)` puts the vanishing point on `bottom: 11vh` — exactly where
+`Atmosphere` draws its horizon line — at every viewport height, with no resize
+listener and no measurement.
+
+The car is drawn, not photographed: an eighties wedge silhouette in plain SVG,
+with radial-gradient glows rather than SVG filters, because a filter on a layer
+that animates repaints every frame and a gradient rasterises once. It bobs by
+1.5px and its lamps breathe on a different cycle to the underglow, which is
+about as much as a shape that size can take before it looks like a boat.
+
+It is drawn *after* the haze, unlike the rest of the scene. The haze is 85%
+black along the bottom edge, which is precisely where the road is, and
+underneath it the whole thing was a smudge. Being past the night scrim too, it
+reads `--dusk` itself to fade out as the page turns to night.
+
+**`SpeedLines`** is ten thin streaks that show up in proportion to how fast the
+page is moving. Scroll velocity goes through a spring — raw velocity is spiky
+enough that a single wheel notch reads as a few thousand px/s for one frame —
+and the result drives opacity and `scaleY` as Motion values, so scrolling never
+re-renders a component; it writes transforms straight to the compositor. A
+horizontal mask keeps the middle 20% of the screen clear so body copy is never
+read through a moving streak.
+
+It mounts after hydration on purpose. Motion writes the transform inline, the
+scroll may already have moved by the time React hydrates, and `useReducedMotion`
+only resolves on the client — all three are hydration mismatches, and none of it
+belongs in the initial HTML when the streaks are invisible at rest anyway.
+
+Under reduce-motion the streaks do not render at all and every car keyframe
+parks on a resting frame, so the scene is still there, just still.
+
 ## Zoom and resize
 
 Browser zoom changes the CSS viewport width, which used to cross the
@@ -148,9 +193,15 @@ Three things keep it smooth now:
   recalculating on every intermediate zoom step is wasted work;
   `SmoothScroll` runs a single debounced refresh once the burst settles.
 - **Expensive paint work is switched off mid-resize.** `html.is-resizing`
-  drops the backdrop-filters, the grain animation and the compositor
-  promotions while the burst is in flight, so nothing re-rasterises at every
-  intermediate scale.
+  drops the backdrop-filters, the grain animation, the road and car
+  animations, the speed lines and the compositor promotions while the burst is
+  in flight, so nothing re-rasterises at every intermediate scale.
+
+One deliberate exception: the car keeps painting during a resize, it just stops
+animating. Hiding it outright measured as noise against simply stopping the
+animation — and a resize is not only zoom. A mobile URL bar sliding away fires
+one too, and blinking the car out of the scene for 220ms is a worse artefact
+than the frame it saves.
 
 The WebGL scene also stops rendering entirely in a hidden tab, and debounces
 its own drawing-buffer resize.

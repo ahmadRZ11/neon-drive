@@ -7,6 +7,7 @@ import { MEDIA } from "../../data/media";
 import { buildStarField } from "../../lib/rand";
 import { SkylineFar, SkylineNear } from "./Skyline";
 import Palms from "./Palms";
+import DrivingCar from "./DrivingCar";
 
 /* Built once at module scope from a fixed seed — SSR-safe and free at runtime. */
 const STARS = buildStarField(31415, 90);
@@ -214,6 +215,18 @@ export default function Atmosphere() {
             "linear-gradient(0deg, rgb(5 5 12 / 0.85) 0%, rgb(5 5 12 / 0.25) 45%, transparent 100%)",
         }}
       />
+
+      {/*
+        The causeway, and a car on it heading for the vanishing point.
+
+        Drawn after the haze rather than before it. The haze is at its heaviest
+        exactly where the road is — 85% black along the bottom edge — and
+        underneath it the car was a smudge. It still carries its own fade at
+        both ends, so it dissolves into the horizon and into the dark without
+        borrowing the haze to do it — and it reads `--dusk` itself to fade out
+        with the rest of the scene, since it is now past the night scrim too.
+      */}
+      <DrivingCar />
     </div>
   );
 }

@@ -147,7 +147,8 @@ export default function Hero() {
         <div className="hud flex flex-col gap-1.5">
           <span className="flex items-center gap-1.5 text-ash">
             <MapPin aria-hidden className="size-3 text-cyan" />
-            {SITE.location.city} / {SITE.location.region}
+            {SITE.location.city} / {SITE.location.region},{" "}
+            {SITE.location.countryCode}
           </span>
           <span className="tabular-nums">{SITE.location.coords}</span>
         </div>

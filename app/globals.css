@@ -626,3 +626,132 @@ html.is-resizing * {
   --text-btn-lg: 0.875rem;
   --text-btn-lg--line-height: 1;
 }
+
+/* ============================================================================
+   THE DRIVE
+   A car on the causeway heading for the horizon, and streaks that show up when
+   the page is moving fast. Both are decorative and both are strictly
+   transform/opacity — no layout, no filters, nothing repainting per frame — so
+   the compositor owns them and the main thread never sees the work.
+   ========================================================================= */
+
+/* The road. One element, one composited layer: deck, both verges and the
+   centre dashes are four background layers on a single rotated box, and all
+   four tile on the same 46px period. That is what lets the whole plane loop by
+   translating exactly one period — the pattern is identical at both ends, so
+   the seam is invisible and the texture never has to be re-rasterised. */
+.road-plane {
+  transform-origin: 50% 100%;
+  will-change: transform;
+  animation: road-run 1s linear infinite;
+}
+
+@keyframes road-run {
+  from {
+    transform: rotateX(80deg) translate3d(0, 0, 0);
+  }
+  to {
+    transform: rotateX(80deg) translate3d(0, 46px, 0);
+  }
+}
+
+/* Suspension. Tiny numbers on purpose: at this scale a 2px bob is the
+   difference between a parked car and a moving one, and anything more starts
+   to look like a boat. */
+.car-rig {
+  will-change: transform;
+  animation: car-bob 2.9s ease-in-out infinite;
+}
+
+@keyframes car-bob {
+  0%,
+  100% {
+    transform: translate3d(-50%, 0, 0) rotate(0deg);
+  }
+  30% {
+    transform: translate3d(-50%, -1.5px, 0) rotate(0.3deg);
+  }
+  65% {
+    transform: translate3d(-50%, 1px, 0) rotate(-0.25deg);
+  }
+}
+
+.tail-lamp {
+  animation: tail-pulse 2.3s ease-in-out infinite;
+}
+
+@keyframes tail-pulse {
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+  45% {
+    opacity: 1;
+  }
+}
+
+.car-glow {
+  animation: glow-breathe 3.7s ease-in-out infinite;
+}
+
+@keyframes glow-breathe {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+/* Oncoming headlights washing past, down the road and out of frame. Ends at
+   opacity 0, which is also where reduce-motion parks it. */
+.road-streak {
+  will-change: transform, opacity;
+  animation: streak-sweep 5.4s linear infinite;
+}
+
+@keyframes streak-sweep {
+  0% {
+    opacity: 0;
+    transform: translate3d(-50%, 0, 0) scale(0.2);
+  }
+  14% {
+    opacity: 0.45;
+  }
+  68% {
+    opacity: 0.18;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(-50%, 10vh, 0) scale(2.1);
+  }
+}
+
+/* Motion drives the streaks' own opacity and transform; the container only
+   needs promoting so the layer is ready before the first fast scroll. */
+.speed-lines {
+  will-change: opacity;
+}
+
+/* Zoom: same deal as the rest of the backdrop. Stop the animations and release
+   the promotions so the compositor can drop these layers instead of
+   re-rasterising them at every intermediate scale. */
+html.is-resizing .road-plane,
+html.is-resizing .car-rig,
+html.is-resizing .tail-lamp,
+html.is-resizing .car-glow,
+html.is-resizing .road-streak {
+  animation: none;
+  will-change: auto;
+}
+
+/* The streaks are already at opacity 0 unless the page is moving, so taking
+   them out of the paint entirely during a resize costs nothing to look at.
+   The car deliberately does NOT get this treatment: hiding it measured as
+   noise against simply stopping its animation, and a resize is not only zoom —
+   a mobile URL bar sliding away fires one too, and blinking the car out of the
+   scene for 220ms is a far worse artefact than the frame it saves. */
+html.is-resizing .speed-lines {
+  visibility: hidden;
+}

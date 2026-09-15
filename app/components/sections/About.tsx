@@ -121,7 +121,7 @@ export default function About() {
                 <Field label="Role" value={SITE.roleFull} />
                 <Field
                   label="Base"
-                  value={`${SITE.location.city}, ${SITE.location.region}`}
+                  value={`${SITE.location.city}, ${SITE.location.region}, ${SITE.location.country}`}
                 />
                 <Field label="Discipline" value="Design / Interfaces / Motion" />
                 <Field

@@ -118,7 +118,8 @@ export default function Contact() {
               <span className="animate-pulse-dot inline-block h-1.5 w-1.5 rounded-full bg-cyan" />
               <span className="hud flex items-center gap-1.5 text-ash">
                 <MapPin aria-hidden className="size-3 text-cyan" />
-                {SITE.location.city} &mdash; <LiveClock className="text-cyan tabular-nums" />
+                {SITE.location.city}, {SITE.location.countryCode} &mdash;{" "}
+                <LiveClock className="text-cyan tabular-nums" />
               </span>
             </div>
           </div>

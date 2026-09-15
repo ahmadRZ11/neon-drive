@@ -1,6 +1,7 @@
 import SmoothScroll from "./components/providers/SmoothScroll";
 import Atmosphere from "./components/atmosphere/Atmosphere";
 import HeroSceneMount from "./components/atmosphere/HeroSceneMount";
+import SpeedLines from "./components/atmosphere/SpeedLines";
 import Film from "./components/chrome/Film";
 import Boot from "./components/chrome/Boot";
 import Nav from "./components/chrome/Nav";
@@ -28,6 +29,7 @@ export default function Page() {
       {/* ─── fixed layers ───────────────────────────────────── */}
       <Atmosphere />
       <HeroSceneMount />
+      <SpeedLines />
       <Film />
       <Boot />
 

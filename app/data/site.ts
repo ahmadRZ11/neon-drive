@@ -42,13 +42,16 @@ export const SITE = {
   tagline: "Building digital worlds",
   email: "mirzaahmad7000@gmail.com",
 
-  /** Shown in the hero HUD. */
+  /** Shown in the hero HUD, the dossier and the contact block. */
   location: {
-    city: "Miami",
-    region: "FL",
-    coords: "25.7617° N, 80.1918° W",
-    /** IANA zone used by the live clock. */
-    timeZone: "America/New_York",
+    city: "Faisalabad",
+    /** Punjab spans two countries, so the code travels with it everywhere. */
+    region: "Punjab",
+    country: "Pakistan",
+    countryCode: "PK",
+    coords: "31.4504° N, 73.1350° E",
+    /** IANA zone used by the live clock. PKT is UTC+5 and has no DST. */
+    timeZone: "Asia/Karachi",
   },
 
   availability: {
