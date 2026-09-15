@@ -94,7 +94,6 @@ export default function Interstitial({
         }}
       />
       <div className="grain absolute inset-0 opacity-[0.07] mix-blend-overlay" />
-      <div className="scanlines absolute inset-0 opacity-15" />
 
       <div
         data-inter="caption"

@@ -174,7 +174,6 @@ function GalleryTile({
           )}
 
           {/* retro treatment, matched to the rest of the page */}
-          <div className="scanlines pointer-events-none absolute inset-0 opacity-20" />
           <div className="grain pointer-events-none absolute inset-0 opacity-[0.06] mix-blend-overlay" />
           <div
             aria-hidden
